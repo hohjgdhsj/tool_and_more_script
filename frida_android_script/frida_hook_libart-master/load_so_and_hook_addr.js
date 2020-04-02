@@ -20,10 +20,10 @@
 Java.perform(function () {
        //这个c_getSum方法有两个int参数、返回结果为两个参数相加
        //这里用NativeFunction函数自己定义了一个c_getSum函数
-	   	var pointer = Module.load("/data/app/com.offbitstudio.water.shooty.gunner.challenge.free.fire-JlV_ZxbjPbuKccqwJs4_bg==/lib/arm/libil2cpp.so").base
+	   	var pointer = Module.load("/data/app/com.playgendary.racemasters-1/lib/arm64/libil2cpp.so").base
 		//var pointer = Process.findModuleByName("libil2cpp.so").base;
 		console.log("libil2cpp:",pointer);
-		var fun_add = Number(pointer) + Number(0x9FA4CC)
+		var fun_add = Number(pointer) + Number(0x10EA4CC)
 		const ptr1 = new NativePointer(fun_add);
 		console.log("fun_add:",fun_add);
 
@@ -33,3 +33,25 @@ Java.perform(function () {
 			console.log("NativeFunction:");
        }, 'void', []));
 });
+
+
+//Java.perform(function () {
+//       //这个c_getSum方法有两个int参数、返回结果为两个参数相加
+//       //这里用NativeFunction函数自己定义了一个c_getSum函数
+//	   	var pointer = Module.load("/data/app/com.playgendary.racemasters-1/lib/arm64/libil2cpp.so").base
+//		//var pointer = Process.findModuleByName("libil2cpp.so").base;
+//		console.log("libil2cpp:",pointer);
+//		var fun_add = Number(pointer) + Number(0x51EA34)
+//		const ptr1 = new NativePointer(fun_add);
+//		console.log("fun_add:",fun_add);
+//		var add_method = new NativeFunction(ptr1, 'void',[]);
+//		Interceptor.attach(add_method, {
+//			onEnter: function(args) {
+//				console.log("FirebaseRemoteConfigInitializer");			
+//			},
+//			onLeave:function(retval){
+//    
+//			}
+//			
+//       });
+//});

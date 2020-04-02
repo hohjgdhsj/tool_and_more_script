@@ -1,12 +1,16 @@
 Java.perform(function () {
-    var MainActivity = Java.use('java.lang.System');
-	var tolua = true
-    MainActivity.load.overload('java.lang.String').implementation = function (libname) {
-		tolua=libname.search("libtolua.so")
-        send("Hook Start...");
-        send("libname:"+libname);
+    var System1 = Java.use('java.lang.System');
+    System1.load.overload('java.lang.String').implementation = function (libname) {
+        send("load:"+libname);
         this.load(libname)
-	return
+    }
+    System1.loadLibrary.overload('java.lang.String').implementation = function (libname) {
+        
+        send("loadLibrary:"+libname);
+        this.loadLibrary(libname)
     }
 });
+
+
+
 
