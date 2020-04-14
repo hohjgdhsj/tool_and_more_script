@@ -44,6 +44,7 @@ function trace(pattern)
 				if (aClass.match(pattern)) {
 					found = true;
 					var className = aClass.match(/[L](.*);/)[1].replace(/\//g, ".");
+					console.log("aclassName",className)
 					traceClass(className);
 				}
 			},
@@ -172,7 +173,7 @@ setTimeout(function() { // avoid java.lang.ClassNotFoundException
 
 	Java.perform(function() {
 
-		// trace("com.target.utils.CryptoUtils.decrypt");
+		trace("com.target.utils.CryptoUtils.decrypt");
 		// trace("com.target.utils.CryptoUtils");
 		// trace("CryptoUtils");
 		// trace(/crypto/i);
