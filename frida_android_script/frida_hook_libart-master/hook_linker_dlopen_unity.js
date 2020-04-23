@@ -19,7 +19,7 @@ function get_func_by_offset(module_name, offset) {
 function get_linker_offset(){
     if(Java.androidVersion == "9"){
 
-        return 0x14268
+        return 0x75a5
     }else{
         // 6p 7.1  linker64
         // return 0xA24C
@@ -29,7 +29,7 @@ function get_linker_offset(){
 
 }
 function libil2cpp_hook(){
-    var func = get_func_by_offset(so_lib_name, 0xb63a98)
+    var func = get_func_by_offset(so_lib_name, 0x5429d0)
     Interceptor.attach(func, {
         onEnter: function (args) {
             console.log("call from:\n" + Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n") + "\n")
@@ -38,12 +38,62 @@ function libil2cpp_hook(){
             console.log("return", retval)
         }
     });
-       //     //直接new一个新函数进行替换
+    //        直接new一个新函数进行替换
     //     Interceptor.replace(func, new NativeCallback(function () {
     //         console.log("call from:\n" + Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n") + "\n")
     //         return
     //    }, 'void', []));
 
+
+
+    //    var func1 = get_func_by_offset(so_lib_name, 0x521244)
+    //    Interceptor.attach(func1, {
+    //        onEnter: function (args) {
+    //            console.log("call 0x521244:\n" + Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n") + "\n")
+    //        },
+    //        onLeave: function (retval) {
+    //            console.log("return", retval)
+    //        }
+    //    });
+              //直接new一个新函数进行替换
+        //    Interceptor.replace(func, new NativeCallback(function () {
+        //        console.log("call 0x521244:\n" + Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n") + "\n")
+        //        return
+        //   }, 'void', []));
+
+
+
+        // var func3 = get_func_by_offset(so_lib_name, 0x520b30)
+        // Interceptor.attach(func3, {
+        //     onEnter: function (args) {
+        //         console.log("call 0x520b30:\n" + Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n") + "\n")
+        //     },
+        //     onLeave: function (retval) {
+        //         console.log("return", retval)
+        //     }
+        // });
+               //直接new一个新函数进行替换
+         //    Interceptor.replace(func, new NativeCallback(function () {
+         //        console.log("call 0x521244:\n" + Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n") + "\n")
+         //        return
+         //   }, 'void', []));
+
+
+
+        //  var func4 = get_func_by_offset(so_lib_name, 0x520c50)
+        //  Interceptor.attach(func4, {
+        //      onEnter: function (args) {
+        //          console.log("call 0x520c50:\n" + Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n") + "\n")
+        //      },
+        //      onLeave: function (retval) {
+        //          console.log("return", retval)
+        //      }
+        //  });
+                //直接new一个新函数进行替换
+          //    Interceptor.replace(func, new NativeCallback(function () {
+          //        console.log("call 0x521244:\n" + Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join("\n") + "\n")
+          //        return
+          //   }, 'void', []));
 
 }
 
@@ -57,7 +107,7 @@ function main() {
         Interceptor.attach(func, {
             onEnter: function (args) {
                 so_name = Memory.readCString(args[0])
-                console.log("load so name",so_name)
+                // console.log("load so name",so_name)
             },
             onLeave: function (retval) {
 
