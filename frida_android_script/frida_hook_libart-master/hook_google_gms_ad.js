@@ -1,11 +1,11 @@
+
+
 Java.perform(function () {
-	
-	
-	
-	var LuaLoader = Java.use('com.mopub.unity.MoPubUnityPlugin$UnityEvent');
-    LuaLoader.Emit.overload('java.lang.String').implementation = function (bundle) {
+	console.log("badfewa")
+	var LuaLoader = Java.use('com.ironsource.unity.androidbridge.AndroidBridge');
+    LuaLoader.showRewardedVideo.overload().implementation = function () {
         send("Hook Start...onCreate");
-        return this.Emit(bundle)
+        return this.showRewardedVideo()
     }
 	
 	

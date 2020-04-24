@@ -1,3 +1,4 @@
+///<reference path='./frida-gum.d.ts' />, ~~
 /*
  * raptor_frida_android_*.js - Frida snippets for Android
  * Copyright (c) 2017 Marco Ivaldi <raptor@0xdeadbeef.info>
@@ -21,8 +22,107 @@
 // usage examples
 
 
+// find and trace all methods declared in a Java Class
+function traceClass(targetClass)
+{
+	var hook = Java.use(targetClass);
+	var methods = hook.class.getDeclaredMethods();
+	hook.$dispose;
 
+	var parsedMethods = [];
+	methods.forEach(function(method) {
+		parsedMethods.push(method.toString().replace(targetClass + ".", "TOKEN").match(/\sTOKEN(.*)\(/)[1]);
+	});
 
+	var targets = uniqBy(parsedMethods, JSON.stringify);
+	targets.forEach(function(targetMethod) {
+		traceMethod(targetClass + "." + targetMethod);
+	});
+}
+
+// trace a specific Java Method
+function traceMethod(targetClassMethod)
+{
+	var delim = targetClassMethod.lastIndexOf(".");
+	if (delim === -1) return;
+
+	var targetClass = targetClassMethod.slice(0, delim)
+	var targetMethod = targetClassMethod.slice(delim + 1, targetClassMethod.length)
+
+	var hook = Java.use(targetClass);
+	var overloadCount = hook[targetMethod].overloads.length;
+
+	// console.log("Tracing " + targetClassMethod + " [" + overloadCount + " overload(s)]");
+
+	for (var i = 0; i < overloadCount; i++) {
+
+		hook[targetMethod].overloads[i].implementation = function() {
+			console.warn("\n*** entered " + targetClassMethod);
+
+			// print backtrace
+			// Java.perform(function() {
+			//	var bt = Java.use("android.util.Log").getStackTraceString(Java.use("java.lang.Exception").$new());
+			//	console.log("\nBacktrace:\n" + bt);
+			// });   
+
+			// print args
+			// if (arguments.length) console.log();
+			// for (var j = 0; j < arguments.length; j++) {
+			// 	console.log("arg[" + j + "]: " + arguments[j]);
+			// }
+
+			// print retval
+			var retval = this[targetMethod].apply(this, arguments); // rare crash (Frida bug?)
+			// console.log("\nretval: " + retval);
+			// console.warn("\n*** exiting " + targetClassMethod);
+			return retval;
+		}
+	}
+}
+// remove duplicates from array
+function uniqBy(array, key)
+{
+        var seen = {};
+        return array.filter(function(item) {
+                var k = key(item);
+                return seen.hasOwnProperty(k) ? false : (seen[k] = true);
+        });
+}
+
+function class_filter(class_name) {
+	var class_list = new Array(
+		"android.widget",
+		"android.view",
+		"androidx.appcompat.widget",
+		"androidx.constraintlayout",
+		"java.io",
+		"java.util",
+		"java.text",
+		"android.security.keystore",
+		"java.security",
+		"android.content",
+		"java.lang",
+		"android.util.Log",
+		"com.android.org.conscrypt.OpenSSLRSAKeyFactory",
+		"android.os",
+		"sun.security",
+		"android.content.res",
+		"android.util",
+		"com.android.org.conscrypt"
+	)
+	for(var i=0;i<class_list.length;i++){
+		if(class_name.match(class_list[i])){
+			// console.log(class_name)
+			// console.log("true")
+			return true
+		}
+	}
+    return false
+}
+
+function method_filter(method_name) {
+    
+}
 
 setTimeout(function () { // avoid java.lang.ClassNotFoundException
 
@@ -30,28 +130,12 @@ setTimeout(function () { // avoid java.lang.ClassNotFoundException
 		var dexclassLoader = Java.use("java.lang.ClassLoader");
 		var hookClass = undefined;
 		var ClassUse = Java.use("java.lang.Class");
-
 		dexclassLoader.loadClass.overload('java.lang.String').implementation = function (name) {
 			//定义一个String变量，指定我们需要的类
 			//直接调用第二个重载方法，跟原本的逻辑相同。
-			console.log(name)
 			var result = this.loadClass(name, false);
-			var hook = Java.use(name);
-			if(hook == null){
-				return result;
-			}
-			var methods = hook.class.getDeclaredMethods();
-			console.log("method count:",  methods.length)
-			var method_over = null
-			for (var i = 0; i < methods.length; i++) {
-				var method = methods[i]
-				var method_buf = method.toString().split("(")[[1]].split(")")[0]
-				console.log("method name:", method.toString())
-				var method_args = method_args_parse(method_buf)
-				var mName = method.toString().split("(")[[0]].split(".").slice(-1)
-				// console.log("method length:",  method_args.length)
-
-				hookmethod1(name, mName, method_args)
+			if(!class_filter(name)){
+				traceClass(name)
 			}
 			return result;
 		}
@@ -59,117 +143,3 @@ setTimeout(function () { // avoid java.lang.ClassNotFoundException
 	});
 
 }, 0);
-
-function method_args_parse(method_buf) {
-	var method_args = []
-	var method_args_tmp = []
-	if (method_buf != "") {
-		// console.log("method_arg name == null")
-		var method_args_tmp = method_buf.split(",")
-	}
-
-	for (var i = 0; i < method_args_tmp.length; i++) {
-		// console.log(method_args_tmp[i])
-		var tmp = method_args_tmp[i]
-		if (tmp.match("\\[")) {
-			// console.log(tmp)
-			var key = tmp.split("\[")[0]
-			// console.log("key = ", key)
-			switch (key) {
-				case "int":
-					method_args.push("\[I")
-					break;
-				case "byte":
-					method_args.push("\[B")
-					break;
-				case "char":
-					method_args.push("\[C")
-					break;
-				case "double":
-					method_args.push("\[D")
-					break;
-				case "float":
-					method_args.push("\[F")
-					break;
-				case "long":
-					method_args.push("\[J")
-					break;
-				case "short	":
-					method_args.push("\[S")
-					break;
-				case "int":
-					method_args.push("\[I")
-					break;
-				default:
-					{
-						method_args.push("\[L" + key + ";")
-					}
-					break;
-			}
-		} else {
-			method_args.push(tmp)
-		}
-	}
-	// for (var i = 0; i < method_args.length; i++) {
-	// 		console.log(method_args[i])
-	// }
-
-
-
-	return method_args
-}
-
-function hookmethod1(cName, mName, args) {
-	try {
-		var clz = Java.use(cName)
-		if (clz == null) {
-			throw " Java.use()==null"
-		}
-		var method = null
-		// 对付overload(array)bug
-
-		switch (args.length) {
-			case 0: { method = clz[mName].overload() } break
-			case 1: { method = clz[mName].overload(args[0]) } break
-			case 2: {
-				method = clz[mName].overload(args[0], args[1
-				])
-			} break
-			case 3: {
-				method = clz[mName].overload(args[0], args[1],
-					args[2])
-			} break
-			case 4: {
-				method = clz[mName].overload(args[0], args[1],
-					args[2], args[3])
-			} break
-			case 5: {
-				method = clz[mName].overload(args[0], args[1],
-					args[2], args[3], args[4])
-			} break
-			case 6: {
-				method = clz[mName].overload(args[0], args[1],
-					args[2], args[3], args[4], args[5])
-			} break
-			case 7: {
-				method = clz[mName].overload(args[0], args[1],
-					args[2], args[3], args[4], args[5], args[6])
-			} break
-			case 8: {
-				method = clz[mName].overload(args[0], args[1],
-					args[2], args[3], args[4], args[5], args[6], args[7])
-			}
-				break
-			default:
-				return 
-		}
-		method.implementation = function () {
-			var ret = method.apply(this, arguments)
-			return ret
-		}
-	}
-	catch (err) {
-		log("err")
-		// send("error:rpc.exports.hook(); info:   " + err.toString())
-	}
-}

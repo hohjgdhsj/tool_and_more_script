@@ -173,7 +173,7 @@ setTimeout(function() { // avoid java.lang.ClassNotFoundException
 
 	Java.perform(function() {
 
-		trace("com.target.utils.CryptoUtils.decrypt");
+		traceClass("com.ironsource.unity.androidbridge.AndroidBridge");
 		// trace("com.target.utils.CryptoUtils");
 		// trace("CryptoUtils");
 		// trace(/crypto/i);
